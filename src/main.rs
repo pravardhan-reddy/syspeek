@@ -23,28 +23,32 @@ fn parse_info(info: BufReader<File>) -> ProcessInfo {
                 let keyy = s.next();
                 let val = s.next();
                 if let Some(k) = keyy {
-                    if k == "Name" {
-                        if let Some(v) = val {
-                            pinfo.name = v.trim().into();
-                        }
-                    } else if k == "Pid" {
-                        if let Some(v) = val {
-                            let num = v.trim().parse::<usize>();
-                            if let Ok(n) = num {
-                                pinfo.pid = n;
+                    match k {
+                        "Name" => {
+                            if let Some(n) = val {
+                                pinfo.name = n.into();
                             }
                         }
-                    } else if k == "State" {
-                        if let Some(v) = val {
-                            pinfo.state = v.trim().into();
-                        }
-                    } else if k == "Threads" {
-                        if let Some(v) = val {
-                            let num = v.trim().parse::<usize>();
-                            if let Ok(n) = num {
-                                pinfo.threads = n;
+                        "Pid" => {
+                            if let Some(n) = val {
+                                if let Ok(p) = n.trim().parse::<usize>() {
+                                    pinfo.pid = p;
+                                }
                             }
                         }
+                        "State" => {
+                            if let Some(n) = val {
+                                pinfo.state = n.into();
+                            }
+                        }
+                        "Threads" => {
+                            if let Some(n) = val {
+                                if let Ok(p) = n.trim().parse::<usize>() {
+                                    pinfo.threads = p;
+                                }
+                            }
+                        }
+                        _ => {}
                     }
                 }
             }
