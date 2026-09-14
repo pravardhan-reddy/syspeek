@@ -61,28 +61,6 @@ fn print_pinfo(pinfo: ProcessInfo) {
     println!("State:{}", pinfo.state);
     println!("Threads:{}", pinfo.threads);
 }
-// fn print_pinfo(contents: BufReader<File>) {
-//     for line_res in contents.lines() {
-//         if let Ok(line) = line_res {
-//             let mut parts = line.split(":");
-//             let key = parts.next();
-//             let value = parts.next();
-//             match key {
-//                 Some("Name") | Some("Pid") | Some("State") | Some("Threads") => {
-//                     if let Some(keyy) = key {
-//                         print!("{}:", keyy.trim());
-//                     }
-//                     if let Some(val) = value {
-//                         print!("{}", val.trim());
-//                     }
-//                     println!();
-//                 }
-//                 Some(_) => {}
-//                 None => println!("Failed to parse"),
-//             }
-//         }
-//     }
-// }
 
 fn main() {
     let args: Vec<String> = env::args().collect();
