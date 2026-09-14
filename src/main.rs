@@ -22,34 +22,26 @@ fn parse_info(info: BufReader<File>) -> ProcessInfo {
                 let mut s = key.split(":");
                 let keyy = s.next();
                 let val = s.next();
-                if let Some(k) = keyy {
-                    match k {
-                        "Name" => {
-                            if let Some(n) = val {
-                                pinfo.name = n.into();
-                            }
-                        }
-                        "Pid" => {
-                            if let Some(n) = val {
-                                if let Ok(p) = n.trim().parse::<usize>() {
-                                    pinfo.pid = p;
-                                }
-                            }
-                        }
-                        "State" => {
-                            if let Some(n) = val {
-                                pinfo.state = n.into();
-                            }
-                        }
-                        "Threads" => {
-                            if let Some(n) = val {
-                                if let Ok(p) = n.trim().parse::<usize>() {
-                                    pinfo.threads = p;
-                                }
-                            }
-                        }
-                        _ => {}
+                let value = val.unwrap_or("null");
+                match keyy {
+                    Some("Name") => {
+                        pinfo.name = value.trim().into();
                     }
+                    Some("Pid") => {
+                        if let Ok(n) = value.trim().parse::<usize>() {
+                            pinfo.pid = n;
+                        }
+                    }
+                    Some("State") => {
+                        pinfo.state = value.trim().into();
+                    }
+                    Some("Threads") => {
+                        if let Ok(n) = value.trim().parse::<usize>() {
+                            pinfo.threads = n;
+                        }
+                    }
+                    Some(_) => {}
+                    None => {}
                 }
             }
             Err(err) => println!("Failed to parse, {}", err),
