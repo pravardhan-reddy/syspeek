@@ -36,36 +36,32 @@ fn parse_info(info: BufReader<File>) -> Result<ProcessInfo, Box<dyn Error>> {
     let mut state: Option<String> = None;
     let mut threads: Option<usize> = None;
     for line in info.lines() {
-        match line {
-            Ok(key) => {
-                let mut s = key.split(":");
-                let keyy = s.next();
-                let val = s.next();
-                let value = val.ok_or(ProcessInfoError::new("Value not found error"))?;
-                match keyy {
-                    Some("Name") => {
-                        let nm = value.trim().into();
-                        name = Some(nm);
-                    }
-                    Some("Pid") => {
-                        if let Ok(n) = value.trim().parse::<usize>() {
-                            pid = Some(n);
-                        }
-                    }
-                    Some("State") => {
-                        let st = value.trim().into();
-                        state = Some(st);
-                    }
-                    Some("Threads") => {
-                        if let Ok(n) = value.trim().parse::<usize>() {
-                            threads = Some(n);
-                        }
-                    }
-                    Some(_) => {}
-                    None => {}
+        let k = line?;
+        let mut t = k.split(":");
+        let keyy = t.next();
+        let val = t.next();
+        let value = val.ok_or(ProcessInfoError::new("Value not found error"))?;
+        match keyy {
+            Some("Name") => {
+                let nm = value.trim().into();
+                name = Some(nm);
+            }
+            Some("Pid") => {
+                if let Ok(n) = value.trim().parse::<usize>() {
+                    pid = Some(n);
                 }
             }
-            Err(err) => return Err(Box::new(err)),
+            Some("State") => {
+                let st = value.trim().into();
+                state = Some(st);
+            }
+            Some("Threads") => {
+                if let Ok(n) = value.trim().parse::<usize>() {
+                    threads = Some(n);
+                }
+            }
+            Some(_) => {}
+            None => {}
         }
     }
     match (name, pid, state, threads) {
