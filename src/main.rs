@@ -1,6 +1,7 @@
-use std::env;
+use std::error::Error;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
+use std::{env, fmt};
 
 struct ProcessInfo {
     pid: usize,
@@ -9,53 +10,84 @@ struct ProcessInfo {
     threads: usize,
 }
 
-fn parse_info(info: BufReader<File>) -> ProcessInfo {
-    let mut pinfo = ProcessInfo {
-        pid: 0,
-        name: "null".into(),
-        state: "null".into(),
-        threads: 0,
-    };
+#[derive(Debug)]
+struct ProcessInfoError {
+    message: String,
+}
+
+impl ProcessInfoError {
+    pub fn new(str: &str) -> Self {
+        Self {
+            message: str.to_string(),
+        }
+    }
+}
+impl fmt::Display for ProcessInfoError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.message)
+    }
+}
+
+impl Error for ProcessInfoError {}
+
+fn parse_info(info: BufReader<File>) -> Result<ProcessInfo, Box<dyn Error>> {
+    let mut name: Option<String> = None;
+    let mut pid: Option<usize> = None;
+    let mut state: Option<String> = None;
+    let mut threads: Option<usize> = None;
     for line in info.lines() {
         match line {
             Ok(key) => {
                 let mut s = key.split(":");
                 let keyy = s.next();
                 let val = s.next();
-                let value = val.unwrap_or("null");
+                let value = val.ok_or(ProcessInfoError::new("Value not found error"))?;
                 match keyy {
                     Some("Name") => {
-                        pinfo.name = value.trim().into();
+                        let nm = value.trim().into();
+                        name = Some(nm);
                     }
                     Some("Pid") => {
                         if let Ok(n) = value.trim().parse::<usize>() {
-                            pinfo.pid = n;
+                            pid = Some(n);
                         }
                     }
                     Some("State") => {
-                        pinfo.state = value.trim().into();
+                        let st = value.trim().into();
+                        state = Some(st);
                     }
                     Some("Threads") => {
                         if let Ok(n) = value.trim().parse::<usize>() {
-                            pinfo.threads = n;
+                            threads = Some(n);
                         }
                     }
                     Some(_) => {}
                     None => {}
                 }
             }
-            Err(err) => println!("Failed to parse, {}", err),
+            Err(err) => return Err(Box::new(err)),
         }
     }
-    pinfo
+    match (name, pid, state, threads) {
+        (Some(n), Some(p), Some(s), Some(t)) => {
+            let pinfo = ProcessInfo {
+                name: n,
+                pid: p,
+                state: s,
+                threads: t,
+            };
+            Ok(pinfo)
+        }
+        _ => Err(Box::new(ProcessInfoError::new("Failed to parse info"))),
+    }
 }
 
 fn print_pinfo(pinfo: ProcessInfo) {
     println!("Process Info");
     println!("Name:{}", pinfo.name);
-    println!("Pid:{}", pinfo.pid);
-    println!("State:{}", pinfo.state);
-    println!("Threads:{}", pinfo.threads);
+    println!("Name:{}", pinfo.pid);
+    println!("Name:{}", pinfo.state);
+    println!("Name:{}", pinfo.threads);
 }
 
 fn main() {
@@ -76,8 +108,11 @@ fn main() {
     match File::open(&path) {
         Ok(file) => {
             let reader = BufReader::new(file);
-            let pinfo = parse_info(reader);
-            print_pinfo(pinfo);
+            if let Ok(pinfo) = parse_info(reader) {
+                print_pinfo(pinfo);
+            } else {
+                eprintln!("Error while parsing");
+            }
         }
         Err(err) => {
             eprintln!("Failed to read {}: {}", path, err);
