@@ -81,9 +81,9 @@ fn parse_info(info: BufReader<File>) -> Result<ProcessInfo, Box<dyn Error>> {
 fn print_pinfo(pinfo: ProcessInfo) {
     println!("Process Info");
     println!("Name:{}", pinfo.name);
-    println!("Name:{}", pinfo.pid);
-    println!("Name:{}", pinfo.state);
-    println!("Name:{}", pinfo.threads);
+    println!("Pid:{}", pinfo.pid);
+    println!("State:{}", pinfo.state);
+    println!("Threads:{}", pinfo.threads);
 }
 
 fn main() {
